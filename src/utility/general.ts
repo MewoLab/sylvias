@@ -1,0 +1,1 @@
+export const botEmbedColor = "#6a5bb0";
