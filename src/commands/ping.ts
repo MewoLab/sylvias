@@ -7,6 +7,9 @@ export const command: BotCommand = {
         [Language.en]: "ping",
         [Language.ja]: "ピン"
     },
+    arguments: [
+        {name: "test", required: false}
+    ],
     requiresPrivilege: false,
     internationalizationStatus: {
         [Language.en]: BotCommandLanguageState.Complete,
@@ -15,10 +18,10 @@ export const command: BotCommand = {
     },
     async execute(interaction: ChatInputCommandInteraction): Promise<void> {
         await interaction.reply(
-            getAppropriateString(interaction.locale, {
+            `${getAppropriateString(interaction.locale, {
                 [Language.en]: "Pong.",
                 [Language.ja]: "ポン"
-            })
+            })} ${JSON.stringify(interaction.options.data)}`
         );
     }
 }

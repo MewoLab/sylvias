@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, EmbedBuilder, formatEmoji, Locale } from "discord.js";
-import { BotCommand } from "../bot";
+import { ChatInputCommandInteraction, EmbedBuilder, Locale } from "discord.js";
 import { botCommandGenericIssueStates, BotCommandLanguageState, getAppropriateString, Language } from "../utility/i18n";
+import { BotCommand } from "../bot";
 
 import { marked, type Tokens } from "marked";
 import { botEmbedColor } from "../utility/general";
@@ -60,6 +60,7 @@ async function getFormattedChart(locale: Locale): Promise<EmbedBuilder | undefin
 
 export const command: BotCommand = {
     name: commandName,
+    arguments: [],
     requiresPrivilege: false,
     internationalizationStatus: {
         [Language.en]: BotCommandLanguageState.Complete,

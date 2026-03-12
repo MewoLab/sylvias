@@ -91,7 +91,7 @@ export function tweakLanguagesForCommand(strings: Partial<Record<Language, strin
     )
 }
 
-export function getLanguageStatesAsDiscordLocales(states: Record<Language, BotCommandLanguageState>, prefix?: Record<Language, string>) {
+export function getLanguageStatesAsDiscordLocales(states: Record<Language, BotCommandLanguageState>, prefix?: Partial<Record<Language, string>>) {
     return getBotLocaleAsDiscordLocale( 
         Object.fromEntries(
             Object.entries(states).map((k: any[]) => {

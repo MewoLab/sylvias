@@ -2,10 +2,15 @@ import { ChatInputCommandInteraction, Client, Events, GatewayIntentBits, Interac
 import { BotCommandLanguageState, botCommandPrivilegeRejectionStates, getAppropriateString, getBotLocaleAsDiscordLocale, getLanguageStatesAsDiscordLocales, Language, tweakLanguagesForCommand, tweakStringForCommand } from "./utility/i18n";
 import fs from "fs";
 
+export interface BotCommandArgument {
+    name: string,
+    required: boolean
+}
 export interface BotCommand {
     name: Partial<Record<Language, string>>,
     requiresPrivilege: boolean,
     internationalizationStatus: Record<Language, BotCommandLanguageState>,
+    arguments: BotCommandArgument[],
     execute: (interaction: ChatInputCommandInteraction) => Promise<void>
 };
 
@@ -32,9 +37,13 @@ export class Bot {
             return;
 
         for (let command of this.commands) {
-            if (tweakStringForCommand(command.name[Language.en] ?? "") == interaction.commandName) {
+            if (tweakStringForCommand(command.name[Language.en] ?? "") == interaction.commandName && interaction.guild) {
                 // TODO: check roles
-                if (command.requiresPrivilege) {
+                let guild = await interaction.guild.roles.fetch(interaction.user.id)
+                if (command.requiresPrivilege && !guild?.members.
+                    get(interaction.user.id)?.roles.cache.
+                    get(process.env.DISCORD_MODERATION_ROLE_ID ?? "")
+                ) {
                     await interaction.reply(
                         getAppropriateString(interaction.locale, botCommandPrivilegeRejectionStates)
                     )
@@ -51,31 +60,37 @@ export class Bot {
         // NOTE: Ugh, why are these different ???
         const commandFiles = fs.readdirSync("./src/commands");
         for (const commandFile of commandFiles) {
-            const { command } = await import(`./commands/${commandFile}`);
+            const { command } = (await import(`./commands/${commandFile}`));
             if (command) {
                 this.commands.push(command as BotCommand);
+                let slashCommand = new SlashCommandBuilder()
+                    .setName(tweakStringForCommand(command.name[Language.en] ?? ""))
+                    .setDescription(command.name[Language.en] ?? "")
+                    .setNameLocalizations(
+                        getBotLocaleAsDiscordLocale(tweakLanguagesForCommand(command.name))
+                    )
+                    .setDescriptionLocalizations(
+                        getLanguageStatesAsDiscordLocales(command.internationalizationStatus, command.name)
+                    )
+                for (const argument of (command.arguments as BotCommandArgument[])) {
+                    slashCommand.addStringOption(option => 
+                        option.setName(argument.name)
+                            .setDescription(argument.name)
+                    )
+                }
                 restSlashCommands.push(
-                    new SlashCommandBuilder()
-                        .setName(tweakStringForCommand(command.name[Language.en]))
-                        .setDescription(command.name[Language.en])
-                        .setNameLocalizations(
-                            getBotLocaleAsDiscordLocale(tweakLanguagesForCommand(command.name))
-                        )
-                        .setDescriptionLocalizations(
-                            getLanguageStatesAsDiscordLocales(command.internationalizationStatus, command.name)
-                        )
-                        .toJSON()
+                    slashCommand.toJSON()
                 );
             }
         }
-
-        console.log(restSlashCommands);
         
         this.commandRest.setToken(process.env.DISCORD_BOT_TOKEN ?? "");
         await this.commandRest.put(Routes.applicationGuildCommands(
             (process.env.DISCORD_BOT_CLIENT_ID ?? "").toString(),
             (process.env.DISCORD_GUILD_ID ?? "").toString()
         ), { body: restSlashCommands });
+        
+        console.log(`${restSlashCommands.length} commands registered`)
     }
 
     commandRest: REST = new REST();
