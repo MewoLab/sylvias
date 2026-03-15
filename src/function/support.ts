@@ -1,6 +1,6 @@
 import { Client, ForumChannel, Locale, ThreadChannel } from "discord.js";
 import { getAppropriateString, getDiscordLocale, Language } from "../utility/i18n";
-import { Game, getGameFromName, simplifyGameName, swap, list, gameMap } from "../utility/general";
+import { Game, getGameFromName, simplifyGameName, swap, list, gameMap, disableUrlEmbeds } from "../utility/general";
 
 import fs from "fs";
 import { config } from "../config";
@@ -25,6 +25,24 @@ async function waitStarterMessage(thread: ThreadChannel, maxTries: number = 15) 
         }
     }
     throw new Error("Starter message never arrived");
+}
+
+function splitMessage(text: string) {
+    let chunks: string[] = [];
+    let current = "";
+
+    for (const line of text.split("\n")) {
+        if ((current + line + "\n").length > 2000) {
+            chunks.push(current);
+            current = "";
+        }
+        current += line + "\n";
+    }
+
+    if (current) 
+        chunks.push(current);
+
+    return chunks;
 }
 
 export async function onThreadCreation(thread: ThreadChannel) {
@@ -62,14 +80,13 @@ export async function onThreadCreation(thread: ThreadChannel) {
     }
     
     await waitStarterMessage(thread);
-    await thread.send({
-        content: 
-            swap(getAppropriateString(locale, headerMessage), [
-                list(tags), includedArticles.map(game => `### ${swap(getAppropriateString(locale, headerSelfResourcesAvailable), [
-                    getAppropriateString(locale, gameMap[game])
-                ])}\n${
-                    articles[game as Game] ? getAppropriateString(locale, articles[game as Game] as Partial<Record<Language, string>>) : ""
-                }`).join("\n")
-            ])
-    })
+    for (const chunk of splitMessage(swap(getAppropriateString(locale, headerMessage), [
+        list(tags), includedArticles.map(game => `### ${swap(getAppropriateString(locale, headerSelfResourcesAvailable), [
+            getAppropriateString(locale, gameMap[game])
+        ])}\n${
+            articles[game as Game] ? disableUrlEmbeds(getAppropriateString(locale, articles[game as Game] as Partial<Record<Language, string>>)) : ""
+        }`).join("\n")
+    ]))) {
+        await thread.send(chunk); await new Promise(resolve => setTimeout(resolve, 250));
+    }
 }

@@ -3,7 +3,7 @@ import { botCommandGenericIssueStates, BotCommandLanguageState, getAppropriateSt
 import { BotCommand } from "../bot";
 
 import { marked, type Tokens } from "marked";
-import { gameMap, getGameFromName, swap } from "../utility/general";
+import { disableUrlEmbeds, gameMap, getGameFromName, swap } from "../utility/general";
 import { config } from "../config";
 
 const commandName: Partial<Record<Language, string>> = {
@@ -44,7 +44,7 @@ async function getFormattedChart(locale: Locale): Promise<EmbedBuilder | undefin
         embedBuilder.addFields({
             name: `${game ? getAppropriateString(locale, gameMap[game]) : name} ${game ? `<:game:${config.discord.gameEmojis[game]}>` : ""} (${getAppropriateString(locale, codeString)} ${code})`,
             // NOTE: We check for links and don't include them so it doesn't show a massive embed of the person's Github profile
-            value: `・ ${versions} ${additionalNotes.includes("https://") || !additionalNotes ? "" : `・ ${additionalNotes}`}`
+            value: `・ ${versions} ${disableUrlEmbeds(additionalNotes)}`
         })
     }
     return embedBuilder;

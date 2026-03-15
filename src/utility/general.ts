@@ -61,3 +61,7 @@ export function getGameFromName(name: string) : Game | undefined {
     }
     return;
 }
+
+export function disableUrlEmbeds(text: string) {
+    return text.replace(/(?<!<)https?:\/\/[^\s<>)]+/g, '<$&>');
+}
