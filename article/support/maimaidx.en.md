@@ -21,4 +21,6 @@ Sound8Ch=0
 - It is recommended you install AquaMai for QoL
 - Ensure you do not have protected game executables (they must be unpacked) and that your `Assembly-CSharp.dll` file is the correct version for your game
 
+**Note: FiNALE and below are NOT supported.**
+
 Attaching your `segatools.ini` file **with the keychip section removed** and any notable errors or logs will improve assistance.

@@ -9,7 +9,7 @@ const headerMessage: Partial<Record<Language, string>> = {
     [Language.en]: "Hello. Your ticket for **%s** support has been received and you will receive assistance shortly, please be patient and respectful with the staff members who assist you.\n%s"
 }
 const headerSelfResourcesAvailable: Partial<Record<Language, string>> = {
-    [Language.en]: "Please refer to the following for %s:"
+    [Language.en]: "Troubleshooting Tips & Common Issues Regarding %s:"
 }
 
 let articles: Partial<Record<Game, Partial<Record<Language, string>>>> = {};
@@ -81,7 +81,7 @@ export async function onThreadCreation(thread: ThreadChannel) {
     
     await waitStarterMessage(thread);
     for (const chunk of splitMessage(swap(getAppropriateString(locale, headerMessage), [
-        list(tags), includedArticles.map(game => `### ${swap(getAppropriateString(locale, headerSelfResourcesAvailable), [
+        list(tags), includedArticles.map(game => `## ${swap(getAppropriateString(locale, headerSelfResourcesAvailable), [
             getAppropriateString(locale, gameMap[game])
         ])}\n${
             articles[game as Game] ? disableUrlEmbeds(getAppropriateString(locale, articles[game as Game] as Partial<Record<Language, string>>)) : ""

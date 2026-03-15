@@ -44,7 +44,7 @@ async function getFormattedChart(locale: Locale): Promise<EmbedBuilder | undefin
         embedBuilder.addFields({
             name: `${game ? getAppropriateString(locale, gameMap[game]) : name} ${game ? `<:game:${config.discord.gameEmojis[game]}>` : ""} (${getAppropriateString(locale, codeString)} ${code})`,
             // NOTE: We check for links and don't include them so it doesn't show a massive embed of the person's Github profile
-            value: `・ ${versions} ${disableUrlEmbeds(additionalNotes)}`
+            value: `・ ${versions} ${additionalNotes ? ` ・ ${disableUrlEmbeds(additionalNotes)}` : ""}`
         })
     }
     return embedBuilder;

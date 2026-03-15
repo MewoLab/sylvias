@@ -7,4 +7,6 @@
 - Ensure you have an `ICF1` file in your `amfs` folder, and if the game boots to the title that it shows the correct game version
 - Ensure you do not have protected game executables (they must be unpacked) and they are the correct executables for your game version
 
+**Note: PARADISE LOST and below are NOT supported.**
+
 Attaching your `segatools.ini` file **with the keychip section removed** and any notable errors or logs will improve assistance.
