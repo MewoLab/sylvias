@@ -6,7 +6,7 @@ import fs from "fs";
 import { config } from "../config";
 
 const headerMessage: Partial<Record<Language, string>> = {
-    [Language.en]: "Hello.\nYour ticket for **%s** support has been received and a staff member will assist you as soon as possible. Please be patient.\n%s"
+    [Language.en]: "Hello. Your ticket for **%s** support has been received and you will receive assistance shortly, please be patient and respectful with the staff members who assist you.\n%s"
 }
 const headerSelfResourcesAvailable: Partial<Record<Language, string>> = {
     [Language.en]: "Please refer to the following for %s:"
@@ -29,7 +29,7 @@ async function waitStarterMessage(thread: ThreadChannel, maxTries: number = 15) 
 
 export async function onThreadCreation(thread: ThreadChannel) {
     if (Object.keys(articles).length == 0) {
-        const supportArticleFiles = fs.readdirSync("./md/support")
+        const supportArticleFiles = fs.readdirSync("./article/support")
         for (const articleName of supportArticleFiles) {
             const [gameName, languageCode] = articleName.split(".");
 
@@ -40,7 +40,7 @@ export async function onThreadCreation(thread: ThreadChannel) {
             if (!articles[game])
                 articles[game] = {};
 
-            articles[game][language] = fs.readFileSync(`./md/support/${articleName}`, 'utf-8').toString();
+            articles[game][language] = fs.readFileSync(`./article/support/${articleName}`, 'utf-8').toString();
         }
     }
     
@@ -63,12 +63,13 @@ export async function onThreadCreation(thread: ThreadChannel) {
     
     await waitStarterMessage(thread);
     await thread.send({
-        content: swap(getAppropriateString(locale, headerMessage), [
-                list(tags), (Object.keys(includedArticles).length > 0 ? 
-                    swap(getAppropriateString(locale, headerSelfResourcesAvailable), [list(includedArticles)]) : ''
-                )
-            ]) + `\n` + includedArticles.map(game => `# ${getAppropriateString(locale, gameMap[game])}\n${
+        content: 
+            swap(getAppropriateString(locale, headerMessage), [
+                list(tags), includedArticles.map(game => `### ${swap(getAppropriateString(locale, headerSelfResourcesAvailable), [
+                    getAppropriateString(locale, gameMap[game])
+                ])}\n${
                     articles[game as Game] ? getAppropriateString(locale, articles[game as Game] as Partial<Record<Language, string>>) : ""
-                }`)
+                }`).join("\n")
+            ])
     })
 }

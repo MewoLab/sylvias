@@ -45,12 +45,13 @@ export const gameMap: Record<Game, Partial<Record<Language, string>>> = {
     }
 }
 export function simplifyGameName(name: string) : string {
-    return name.split(".").join("").toLowerCase();
+    // TODO: Learn Regex for once :sob:
+    return name.replaceAll(" ", "").replaceAll(".", "").toLowerCase();
 }
 export function getGameFromName(name: string) : Game | undefined {
     for (const gameEnum of Object.keys(gameMap)) {
         const gameStrings = gameMap[gameEnum as Game];
-        // NOTE: Using .includes to match just "DIVA" too. *Hopefully* this won't bite us in the ass later.
+        // TODO: Create proper game aliases instead of relying on an unreliable .includes
         for (const languageEnum of Object.keys(gameStrings)) {
             if (simplifyGameName(gameStrings[languageEnum as Language] ?? "").includes(simplifyGameName(name)) 
                 || simplifyGameName(name).includes(simplifyGameName(gameStrings[languageEnum as Language] ?? ""))
