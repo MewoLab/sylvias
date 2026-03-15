@@ -3,34 +3,24 @@ import { botCommandGenericIssueStates, BotCommandLanguageState, getAppropriateSt
 import { BotCommand } from "../bot";
 
 import { marked, type Tokens } from "marked";
-import { botEmbedColor } from "../utility/general";
-
-// NOTE: This sucks!
-const emojiMap: Record<string, string> = {
-    "CHUNITHM": "1324885575056228392",
-    "maimai DX": "1319575907228323941",
-    "maimai DX (Intl)": "1319575907228323941",
-    "O.N.G.E.K.I.": "1324885395946733691",
-    "Project DIVA": "1324886954281537607",
-    "Card Maker": "1481464229377609830",
-    "Wacca": "1324885847371288737"
-}
+import { gameMap, getGameFromName, swap } from "../utility/general";
+import { config } from "../config";
 
 const commandName: Partial<Record<Language, string>> = {
     [Language.en]: "Supported Games List",
     [Language.ja]: "遊べるゲーム"
 }
 const embedFooter: Partial<Record<Language, string>> = {
-    [Language.en]: "Pulled from AquaDX Repository",
-    [Language.ja]: "AquaDXのリポジトリから"
+    [Language.en]: "Pulled from %s Repository",
+    [Language.ja]: "%sのリポジトリから"
 }
 const codeString: Partial<Record<Language, string>> = {
-    [Language.en]: "Game Code",
+    [Language.en]: "Game ID",
     [Language.ja]: "ゲームコード"
 }
 
 async function getFormattedChart(locale: Locale): Promise<EmbedBuilder | undefined> {
-    let readme = await fetch(`https://raw.githubusercontent.com/MewoLab/AquaDX/refs/heads/v1-dev/README.md`)
+    let readme = await fetch(`https://raw.githubusercontent.com/${config.githubRepository[0]}/${config.githubRepository[1]}/refs/heads/${config.githubRepository[2]}/README.md`)
         .then(resp => resp.text());
     let tokens = marked.lexer(readme);
 
@@ -38,9 +28,9 @@ async function getFormattedChart(locale: Locale): Promise<EmbedBuilder | undefin
     if (!markdownTable) return;
     
     let embedBuilder = new EmbedBuilder();
-    embedBuilder.setColor(botEmbedColor);
+    embedBuilder.setColor(config.embedColor);
     embedBuilder.setFooter({
-        text: `${getAppropriateString(locale, embedFooter)} ・ https://github.com/MewoLab/AquaDX`
+        text: `${swap(getAppropriateString(locale, embedFooter), [config.githubRepository[1]])} ・ https://github.com/${config.githubRepository[0]}/${config.githubRepository[1]}`
     });
     embedBuilder.setTitle(getAppropriateString(locale, commandName));
     for (let row of markdownTable.rows) {
@@ -49,8 +39,10 @@ async function getFormattedChart(locale: Locale): Promise<EmbedBuilder | undefin
         let versions = (initialVersion != "N/A" && initialVersion) 
             ? `Ver ${initialVersion} → ${newestVersion}` : `Ver ${newestVersion}`;
 
+        let game = getGameFromName(name);
+
         embedBuilder.addFields({
-            name: `${name} <:game:${(emojiMap[name] ?? emojiMap["CHUNITHM"])}> (${getAppropriateString(locale, codeString)} ${code})`,
+            name: `${game ? getAppropriateString(locale, gameMap[game]) : name} ${game ? `<:game:${config.discord.gameEmojis[game]}>` : ""} (${getAppropriateString(locale, codeString)} ${code})`,
             // NOTE: We check for links and don't include them so it doesn't show a massive embed of the person's Github profile
             value: `・ ${versions} ${additionalNotes.includes("https://") || !additionalNotes ? "" : `・ ${additionalNotes}`}`
         })

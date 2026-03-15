@@ -2,7 +2,9 @@ import { Locale } from "discord.js"
 
 export enum Language {
     // NOTE: zh is concerning Simplified Chinese, as there seems to be prominently simplified than traditional
-    en, ja, zh
+    en = "en", 
+    ja = "ja", 
+    zh = "zh"
 }
 export enum BotCommandLanguageState {
     Complete,
@@ -71,11 +73,19 @@ export function getAppropriateString(language: Locale, strings: Partial<Record<L
             break;
     }
     return strings[
-        (((Object.keys(strings) as string[])
-            .map(k => parseInt(k))
-            .filter(k => !isNaN(k)) ?? [Language.en]) as Language[]
-        )[0]
+        Object.keys(strings)[0] as Language
     ] ?? ":exclamation:";
+}
+export function getDiscordLocale(language: Language): Locale {
+    switch (language) {
+        case Language.ja:
+            return Locale.Japanese;
+        case Language.zh:
+            return Locale.ChineseCN;
+        case Language.en:
+        default: 
+            return Locale.EnglishUS;
+    }
 }
 
 export function tweakStringForCommand(text: string) {
@@ -113,9 +123,7 @@ export function getLanguageStatesAsDiscordLocales(states: Record<Language, BotCo
 export function getBotLocaleAsDiscordLocale(locales: Partial<Record<Language, string>>): Partial<Record<Locale, string>> {
     let discordLocales: Partial<Record<Locale, string>> = {};
 
-    for (let locale of Object.keys(locales)
-        .map(k => parseInt(k)).filter(k => !isNaN(k))
-    ) {
+    for (let locale of Object.keys(locales)) {
         switch (locale) {
             case Language.en:
                 discordLocales["en-US"] = locales[locale];

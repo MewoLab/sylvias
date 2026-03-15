@@ -1,5 +1,24 @@
-import { ChatInputCommandInteraction, Client, Events, GatewayIntentBits, Interaction, REST, RESTPostAPIChatInputApplicationCommandsJSONBody, Routes, SlashCommandBuilder } from "discord.js";
-import { BotCommandLanguageState, botCommandPrivilegeRejectionStates, getAppropriateString, getBotLocaleAsDiscordLocale, getLanguageStatesAsDiscordLocales, Language, tweakLanguagesForCommand, tweakStringForCommand } from "./utility/i18n";
+import { 
+    ChatInputCommandInteraction, 
+    Client, Events, 
+    GatewayIntentBits, 
+    Interaction, REST, 
+    RESTPostAPIChatInputApplicationCommandsJSONBody, 
+    Routes, SlashCommandBuilder 
+} from "discord.js";
+import { 
+    BotCommandLanguageState, 
+    botCommandPrivilegeRejectionStates, 
+    getAppropriateString, 
+    getBotLocaleAsDiscordLocale, 
+    getLanguageStatesAsDiscordLocales, 
+    Language, tweakLanguagesForCommand, 
+    tweakStringForCommand 
+} from "./utility/i18n";
+import { config } from "./config";
+
+import { onThreadCreation } from "./function/support";
+
 import fs from "fs";
 
 export interface BotCommandArgument {
@@ -25,6 +44,9 @@ export class Bot {
         });
         this.client.once(Events.ClientReady, this.ready.bind(this));
         this.client.on(Events.InteractionCreate, this.interaction.bind(this));
+
+        this.client.on(Events.ThreadCreate, onThreadCreation);
+
         this.client.login(process.env.DISCORD_BOT_TOKEN);
     }
     async ready(readyClient: Client<true>) {
@@ -42,7 +64,7 @@ export class Bot {
                 let guild = await interaction.guild.roles.fetch(interaction.user.id)
                 if (command.requiresPrivilege && !guild?.members.
                     get(interaction.user.id)?.roles.cache.
-                    get(process.env.DISCORD_MODERATION_ROLE_ID ?? "")
+                    get(config.discord.moderationRoleId ?? "")
                 ) {
                     await interaction.reply(
                         getAppropriateString(interaction.locale, botCommandPrivilegeRejectionStates)
@@ -86,8 +108,7 @@ export class Bot {
         
         this.commandRest.setToken(process.env.DISCORD_BOT_TOKEN ?? "");
         await this.commandRest.put(Routes.applicationGuildCommands(
-            (process.env.DISCORD_BOT_CLIENT_ID ?? "").toString(),
-            (process.env.DISCORD_GUILD_ID ?? "").toString()
+            (process.env.DISCORD_BOT_CLIENT_ID ?? "").toString(), config.discord.guildId
         ), { body: restSlashCommands });
         
         console.log(`${restSlashCommands.length} commands registered`)
